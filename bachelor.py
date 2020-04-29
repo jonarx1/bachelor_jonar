@@ -18,6 +18,10 @@ import quadpy
 ##########################
 #Paramaters:
 
+
+
+
+
 k = 1.0694
 R = 1 # Radius of the sphere
 q = 1 # Charge
