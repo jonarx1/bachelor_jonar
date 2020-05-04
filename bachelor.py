@@ -36,7 +36,7 @@ scheme = quadpy.sphere.lebedev_003a ()    # Which order of Lebedev
 val = scheme.integrate(lambda x: 1, xyz_sphere, R)
 
 # Numpy array N_points x 3
-points = scheme.points * R
+points = scheme.points * R  
 
 
 for i, x in enumerate(points):   # Changes the center position of the sphere from [0,0,0] to xyz_sphere
@@ -74,22 +74,6 @@ print(w_i.shape[0])
 ##
 #Cosmo
 ################################################
-s_ii = k * np.sqrt( 4 * np.pi / (R ** 2 * w_i))  
-print("s_ii", s_ii)
-
-list1 = []
-
-for i in points:
-    for j in points:
-        list1.append( 1 / np.linalg.norm(i-j))
-        
-
-s_ij0 = np.asarray(list1).reshape(int(len(list1)**0.5),int(len(list1)**0.5))  # Reshapes into a i x j matrix 
-
-
-for i in s_ii:
-    s_ij = np.where(s_ij0==np.inf,i,s_ij0)  # Replaces the 0 in S_ij matrix with S_ii 
-################################################
 
 
 def S(points, weights):
@@ -106,7 +90,7 @@ def S(points, weights):
     return s
 
 
-print("S", S(points,w_i))
+s_ij = S(points,w_i)
 
 
 r_i = np.zeros(len(points)) #matches number of lebedev points
