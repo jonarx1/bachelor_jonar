@@ -93,23 +93,18 @@ def S(points, weights):
 s_ij = S(points,w_i)
 
 
-r_i = np.zeros(len(points)) #matches number of lebedev points
-
-
-#print(scheme.points[0, :])
-
-
-for i, x in enumerate(points):
-    r_i[i] = q / np.linalg.norm(x-xyz_charge)
-    
-#    print("r_i:", r_i[i])
 ################################################
-def potential(points, charges):
+def potential(points, position_charge, charge):
     # Create array for the potential
-    V = np.array(...)
+    V = np.zeros(points.shape[0]) #matches number of lebedev points
     # Fill array with potential
+    for i, x in enumerate(points):
+        for A, R in enumerate(position_charge):
+            V[i] += charge[A] / np.linalg.norm(x-R)
     return V
 
+r_i = potential(points, [xyz_charge], [q])
+print("r_i", potential(points, [xyz_charge], [q]))
 
 print("S_ij:")
 print(s_ij)
