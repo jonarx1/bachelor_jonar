@@ -21,16 +21,15 @@ import quadpy
 
 
 
-
 k = 1.0694
 R = 1 # Radius of the sphere
 q = 1 # Charge
 xyz_sphere = [1, 1, 1] # Center position of the sphere
-xyz_charge = [1, 1, 1] # Position of the charge
+xyz_charge = [0.5, 0.5, 0.5] # Position of the charge
 
 #Lebedev Quadrature
 ###
-scheme = quadpy.sphere.lebedev_003a ()    # Which order of Lebedev
+scheme = quadpy.sphere.lebedev_047 ()    # Which order of Lebedev
 
 
 val = scheme.integrate(lambda x: 1, xyz_sphere, R)
@@ -89,7 +88,7 @@ def S(points, weights):
                 s[i, j] = ( 1 / np.linalg.norm(p-q))
     return s
 
-
+#s_ij -> S_matrix
 s_ij = S(points,w_i)
 
 
@@ -106,26 +105,18 @@ def potential(points, position_charge, charge):
 r_i = potential(points, [xyz_charge], [q])
 print("r_i", potential(points, [xyz_charge], [q]))
 
-print("S_ij:")
-print(s_ij)
 
-s_ij_inverted = np.linalg.inv(s_ij)
 
-#print(s_ij_inverted)
-
-sigma = np.dot(-s_ij_inverted, r_i)
-print("Sigma:", sigma)
-
+# s_ij_inverted -> S_matrix_inverted
 def solve(S, V):
     # Invert S
+    I_S = np.linalg.inv(S)
     # Matrix-vector multiply S^-1 V
+    sigma = np.dot(-I_S, V)
     return sigma
 
-print(np.sum(sigma))
+Sigma = solve(s_ij, r_i)
 
-
-#np.testing.assert_allclose(np.sum(sigma), - q)
-
-
-
-
+print(Sigma)
+print(np.sum(Sigma))
+np.testing.assert_allclose(np.sum(Sigma), - q, rtol=1e-2)
