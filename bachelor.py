@@ -35,8 +35,9 @@ scheme = quadpy.sphere.lebedev_003a ()    # Which order of Lebedev
 
 val = scheme.integrate(lambda x: 1, xyz_sphere, R)
 
-
+# Numpy array N_points x 3
 points = scheme.points * R
+
 
 for i, x in enumerate(points):   # Changes the center position of the sphere from [0,0,0] to xyz_sphere
     x[0] = x[0]+xyz_sphere[0]
@@ -46,6 +47,7 @@ for i, x in enumerate(points):   # Changes the center position of the sphere fro
 
 print("Points on the sphere:")
 print(points)
+print(points.shape[0])
 
 
 
@@ -67,9 +69,9 @@ z_i = np.array([z[2] for z in points]) # Array of all z coordinates
 
 
 w_i = scheme.weights * total_areal(val)
+print(w_i.shape[0])
 
-
-###
+##
 #Cosmo
 ################################################
 s_ii = k * np.sqrt( 4 * np.pi / (R ** 2 * w_i))  
@@ -87,7 +89,24 @@ s_ij0 = np.asarray(list1).reshape(int(len(list1)**0.5),int(len(list1)**0.5))  # 
 
 for i in s_ii:
     s_ij = np.where(s_ij0==np.inf,i,s_ij0)  # Replaces the 0 in S_ij matrix with S_ii 
-#################################################
+################################################
+
+
+def S(points, weights):
+    # Create a square matrix
+    s = np.zeros((points.shape[0], points.shape[0]))
+    # Fill the square matrix
+    for i, p in enumerate(points):
+        print(i,p)
+        for j, q in enumerate(points):
+            if i == j:
+                s[i, i] = k * np.sqrt( 4 * np.pi / (R ** 2 * weights[i])) 
+            else:
+                s[i, j] = ( 1 / np.linalg.norm(p-q))
+    return s
+
+
+print("S", S(points,w_i))
 
 
 r_i = np.zeros(len(points)) #matches number of lebedev points
@@ -99,8 +118,13 @@ r_i = np.zeros(len(points)) #matches number of lebedev points
 for i, x in enumerate(points):
     r_i[i] = q / np.linalg.norm(x-xyz_charge)
     
-    print("r_i:", r_i[i])
+#    print("r_i:", r_i[i])
 ################################################
+def potential(points, charges):
+    # Create array for the potential
+    V = np.array(...)
+    # Fill array with potential
+    return V
 
 
 print("S_ij:")
@@ -112,6 +136,11 @@ s_ij_inverted = np.linalg.inv(s_ij)
 
 sigma = np.dot(-s_ij_inverted, r_i)
 print("Sigma:", sigma)
+
+def solve(S, V):
+    # Invert S
+    # Matrix-vector multiply S^-1 V
+    return sigma
 
 print(np.sum(sigma))
 
