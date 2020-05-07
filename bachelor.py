@@ -29,8 +29,8 @@ xyz_charge = [0, 0, 0] # Position of the charge
 
 #Lebedev Quadrature
 ###
-scheme = quadpy.sphere.lebedev_031 ()    # Which precision of Lebedev
-val = scheme.integrate(lambda x: 1, xyz_sphere, R)
+scheme = quadpy.sphere.lebedev_003a ()    # Which precision of Lebedev
+grid_areals = scheme.integrate(lambda x: 1, xyz_sphere, R)
 
 
 
@@ -42,7 +42,7 @@ def sphere_size(points, radius):
 points = sphere_size(scheme.points, R)
 
 def sphere_position(points, new_position):
-    # Changes the center position of the sphere from [0,0,0] to xyz_sphere
+    # Changes the center position of the sphere from [0,0,0] to new_position
     for i,x in enumerate(points):
         x[0] = x[0]+new_position[0]
         x[1] = x[1]+new_position[1]
@@ -60,19 +60,19 @@ print(points.shape[0])
 
 
 
-def total_areal(val):
-    result = sum(val)
+def total_areal(grid_areals):
+    result = sum(grid_areals)
     return result
 
-if __name__ == "__main__":
-    print ('Total areal: {}'.format(total_areal(val)))
+total_areal = total_areal(grid_areals)
+print ('Total areal:', total_areal)
 
  
-    print("Weights = ",val)
+print("Weights = ",grid_areals)
 
 ###
 
-w_i = scheme.weights * total_areal(val)
+w_i = scheme.weights * total_areal
 print(w_i.shape[0])
 
 ##
