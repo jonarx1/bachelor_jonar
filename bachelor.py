@@ -71,11 +71,6 @@ if __name__ == "__main__":
     print("Weights = ",val)
 
 ###
-x_i = np.array([x[0] for x in points]) # Array of all x coordinates
-y_i = np.array([y[1] for y in points]) # Array of all y coordinates
-z_i = np.array([z[2] for z in points]) # Array of all z coordinates
-
-
 
 w_i = scheme.weights * total_areal(val)
 print(w_i.shape[0])
@@ -98,7 +93,7 @@ def S(points, weights):
     return s
 
 #s_ij -> S_matrix
-s_ij = S(points,w_i)
+S_matrix = S(points,w_i)
 
 
 ################################################
@@ -119,12 +114,12 @@ print("r_i", potential(points, [xyz_charge], [q]))
 # s_ij_inverted -> S_matrix_inverted
 def solve(S, V):
     # Invert S
-    I_S = np.linalg.inv(S)
+    S_matrix_inverted = np.linalg.inv(S)
     # Matrix-vector multiply S^-1 V
-    sigma = np.dot(-I_S, V)
+    sigma = np.dot(S_matrix_inverted, V)
     return sigma
 
-Sigma = solve(s_ij, r_i)
+Sigma = solve(S_matrix, r_i)
 
 print(Sigma)
 print(np.sum(Sigma))
