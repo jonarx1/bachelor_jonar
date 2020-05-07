@@ -24,7 +24,7 @@ import quadpy
 k = 1.0694
 R = 2 # Radius of the sphere
 q = 1 # Charge
-xyz_sphere = [0, 0, 0] # Center position of the sphere
+xyz_sphere = [1, 1, 1] # Center position of the sphere
 xyz_charge = [0, 0, 0] # Position of the charge
 
 #Lebedev Quadrature
@@ -41,13 +41,16 @@ def sphere_size(points, radius):
 
 points = sphere_size(scheme.points, R)
 
+def sphere_position(points, new_position):
+    # Changes the center position of the sphere from [0,0,0] to xyz_sphere
+    for i,x in enumerate(points):
+        x[0] = x[0]+new_position[0]
+        x[1] = x[1]+new_position[1]
+        x[2] = x[2]+new_position[2]
+    return points
+    
 
-
-
-for i, x in enumerate(points):   # Changes the center position of the sphere from [0,0,0] to xyz_sphere
-    x[0] = x[0]+xyz_sphere[0]
-    x[1] = x[1]+xyz_sphere[1]
-    x[2] = x[2]+xyz_sphere[2]
+points = sphere_position(points, xyz_sphere)
 
 
 
@@ -87,7 +90,6 @@ def S(points, weights):
     s = np.zeros((points.shape[0], points.shape[0]))
     # Fill the square matrix
     for i, p in enumerate(points):
-        print(i,p)
         for j, q in enumerate(points):
             if i == j:
                 s[i, i] = k * np.sqrt( 4 * np.pi / (R ** 2 * weights[i])) 
