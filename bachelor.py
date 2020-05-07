@@ -29,10 +29,10 @@ xyz_charge = [0, 0, 0] # Position of the charge
 
 #Lebedev Quadrature
 ###
-scheme = quadpy.sphere.lebedev_003a ()    # Which order of Lebedev
-
-
+scheme = quadpy.sphere.lebedev_031 ()    # Which precision of Lebedev
 val = scheme.integrate(lambda x: 1, xyz_sphere, R)
+
+
 
 def sphere_size(points, radius):
     #Changes the radius of the sphere
@@ -92,7 +92,7 @@ def S(points, weights):
                 s[i, j] = ( 1 / np.linalg.norm(p-q))
     return s
 
-#s_ij -> S_matrix
+
 S_matrix = S(points,w_i)
 
 
@@ -107,7 +107,7 @@ def potential(points, position_charge, charge):
     return V
 
 r_i = potential(points, [xyz_charge], [q])
-print("r_i", potential(points, [xyz_charge], [q]))
+print("r_i", r_i)
 
 
 
