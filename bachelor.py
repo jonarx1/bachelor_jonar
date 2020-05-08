@@ -50,8 +50,17 @@ def solve(S, V):
     # Invert S
     S_matrix_inverted = np.linalg.inv(S)
     # Matrix-vector multiply S^-1 V
-    sigma = np.dot(S_matrix_inverted, V)
+    sigma = -np.dot(S_matrix_inverted, V)
     return sigma
+
+def IEF(S, D, A, V):
+    pass
+
+# TODO (coding)
+# - Create a function to generate the D matrix.
+# - Rename `solve` to `cosmo`.
+# - Create a functioni similar to `solve` but for IEF and call it `ief`.
+# - Make routine to compute the solvation energy  E = 0.5 * \sum_i = V_i asc_i
 
 #print("Weights = ",scheme.weights) # Shows the weights for the sphere
 #print('Lebedev Degree:', scheme.degree)
@@ -60,7 +69,7 @@ def solve(S, V):
 
 k = 1.0694
 R = 2 # Radius of the sphere
-q = np.array([+2, -1]) # Charge
+q = np.array([+2, -1]) # Charges
 xyz_sphere = [0, 0, 0] # Center position of the sphere
 xyz_charge = np.array([[0, 0, -1], [0,0, +1]]) # Position of the charge
 #Lebedev Quadrature
@@ -68,7 +77,19 @@ xyz_charge = np.array([[0, 0, -1], [0,0, +1]]) # Position of the charge
 # q1 = 2 q2 = -1
 # (0, 0, -1)  (0, 0, +1)
 #
-scheme = quadpy.sphere.lebedev_031 ()    # Which precision of Lebedev
+# TODO (testing)
+# Test 1 (done for different quadratures)
+# q=1 position=(0,0,z) z=0 ..... R-0.2
+# Collect the total ASC
+# Compute the solvation energy
+# Plot ASC(z) E(z)
+#
+# Test 2 
+# Similar to test 1 but now with a dipole
+# 
+# q=1 (a,0,z) q=-1 (-a,0,z)  a=0.1 z=0 .... R-0.2
+
+scheme = quadpy.sphere.lebedev_131 ()    # Which precision of Lebedev
 grid_areals = scheme.integrate(lambda x: 1, xyz_sphere, R)
 points = sphere_size(scheme.points, R)
 points = sphere_position(points, xyz_sphere)
