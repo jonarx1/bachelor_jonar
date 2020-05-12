@@ -37,6 +37,16 @@ def S(points, weights):
                 s[i, j] = ( 1 / np.linalg.norm(p-q))
     return s
 
+def D_matrix(points, weights, radius):
+    D = np.zeros((points.shape[0], points.shape[0]))
+    for i, p in enumerate(points):
+        for j, q in enumerate(points):
+            if i == j:
+                D[i, i] = k * np.sqrt( 4 * np.pi * (radius ** 2 * weights[i])) / (2 * radius)
+            else:
+                D[i, j] = ( 1 / np.linalg.norm(p-q))
+    return D
+
 def potential(points, position_charge, charge):
     # Create array for the potential
     V = np.zeros(points.shape[0]) #matches number of lebedev points
@@ -46,15 +56,30 @@ def potential(points, position_charge, charge):
             V[i] += charge[A] / np.linalg.norm(x-R)
     return V
 
-def solve(S, V):
+def COSMO(S, V):
     # Invert S
     S_matrix_inverted = np.linalg.inv(S)
     # Matrix-vector multiply S^-1 V
     sigma = -np.dot(S_matrix_inverted, V)
     return sigma
 
+def Solvation_energy(V_i, q_i):
+    E = 0
+    for i,x in enumerate(V_i):
+        for A,r in enumerate(q_i):
+            E += x * r
+    E = E * 0.5 
+    return E
+
+
 def IEF(S, D, A, V):
-    pass
+    A_matrix_inverted = np.linalg.inv(A)
+    D_matrix_inverted = np.linalg.inv(D)
+
+    return
+
+
+    
 
 # TODO (coding)
 # - Create a function to generate the D matrix.
@@ -89,7 +114,9 @@ xyz_charge = np.array([[0, 0, -1], [0,0, +1]]) # Position of the charge
 # 
 # q=1 (a,0,z) q=-1 (-a,0,z)  a=0.1 z=0 .... R-0.2
 
-scheme = quadpy.sphere.lebedev_131 ()    # Which precision of Lebedev
+
+
+scheme = quadpy.sphere.lebedev_003a ()    # Which precision of Lebedev
 grid_areals = scheme.integrate(lambda x: 1, xyz_sphere, R)
 points = sphere_size(scheme.points, R)
 points = sphere_position(points, xyz_sphere)
@@ -104,8 +131,15 @@ print(w_i.shape[0])
 S_matrix = S(points,w_i)
 r_i = potential(points, xyz_charge, q)
 print("r_i", r_i)
-Sigma = solve(S_matrix, r_i)
+Sigma = COSMO(S_matrix, r_i)
 print(f"Sigma = {Sigma}")
 print(f"Total charge = {np.sum(Sigma)}")
 
+
+Energy = Solvation_energy(q, r_i)
+print(Energy)
+
+D_matrix_1 = D_matrix(points, w_i, R)
+#print(S_matrix)
+#print(D_matrix_1)
 #np.testing.assert_allclose(np.sum(Sigma), - q, rtol=1e-2)
