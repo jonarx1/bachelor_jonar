@@ -7,6 +7,7 @@ This is a temporary script file.
 
 import numpy as np
 import quadpy
+import matplotlib.pyplot as plt
 
 def sphere_size(points, radius):
     #Changes the radius of the sphere
@@ -25,7 +26,7 @@ def total_areal(grid_areals):
     result = sum(grid_areals)
     return result
 
-def S(points, weights):
+def S(points, weights, k=1.0694):
     # Create a square matrix
     s = np.zeros((points.shape[0], points.shape[0]))
     # Fill the square matrix
@@ -37,15 +38,19 @@ def S(points, weights):
                 s[i, j] = ( 1 / np.linalg.norm(p-q))
     return s
 
-def D_matrix(points, weights, radius):
+def D_matrix(points, weights, radius, normals, k=1.0694):
     D = np.zeros((points.shape[0], points.shape[0]))
     for i, p in enumerate(points):
         for j, q in enumerate(points):
             if i == j:
-                D[i, i] = k * np.sqrt( 4 * np.pi * (radius ** 2 * weights[i])) / (2 * radius)
+                D[i, i] = k * np.sqrt( 4 * np.pi * (weights[i])) / (2 * radius)
             else:
-                D[i, j] = ( 1 / np.linalg.norm(p-q))
+                D[i, j] = ( np.dot(p-q, normals[j]) / np.linalg.norm(p-q)**3 )
     return D
+
+def A_matrix(weights):
+    matrix = np.diagflat(weights)
+    return matrix
 
 def potential(points, position_charge, charge):
     # Create array for the potential
@@ -59,27 +64,46 @@ def potential(points, position_charge, charge):
 def COSMO(S, V):
     # Invert S
     S_matrix_inverted = np.linalg.inv(S)
+    #print(S_matrix_inverted)
     # Matrix-vector multiply S^-1 V
     sigma = -np.dot(S_matrix_inverted, V)
     return sigma
 
 def Solvation_energy(V_i, q_i):
-    E = 0
-    for i,x in enumerate(V_i):
-        for A,r in enumerate(q_i):
-            E += x * r
+    E = np.dot(V_i, q_i)
     E = E * 0.5 
     return E
 
 
-def IEF(S, D, A, V):
+def IEF(S, D, A, V, epsilon):
     A_matrix_inverted = np.linalg.inv(A)
-    D_matrix_inverted = np.linalg.inv(D)
+    #print(A_matrix_inverted)
+    R = 2 * np.pi * A_matrix_inverted - D
+    G = 2 * np.pi * ((epsilon + 1)/(epsilon-1)) * A_matrix_inverted - D
+    T = np.dot(G, S)
+    K = np.dot(np.linalg.inv(T), R)
+    sigma = -np.dot(K, V)
+    return sigma
 
-    return
+def testing(Z):
+    a = np.zeros((Z.shape[0],3))
+    for i,z in enumerate(Z):
+        a[i, 2] = z
+    return a
 
-
-    
+def dipole_testing(Z):
+    x = [0.1, -0.1]
+    a = np.zeros((Z.shape[0], 3))
+    b = np.zeros((Z.shape[0], 3))
+    #c = np.zeros((Z.shape[0], 1))
+    #c = np.array([])
+    c = np.zeros((2*Z.shape[0], 3))
+    for i,z in enumerate(Z):
+        a[i, 0] = x[0]
+        b[i, 0] = x[1]
+        a[i, 2] = z
+        b[i, 2] = z
+    return a,b
 
 # TODO (coding)
 # - Create a function to generate the D matrix.
@@ -91,12 +115,14 @@ def IEF(S, D, A, V):
 #print('Lebedev Degree:', scheme.degree)
 ##########################
 #Paramaters:
+Z = np.array([-1.8, -1.6, -1.4, -1.2, -1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8])
 
 k = 1.0694
-R = 2 # Radius of the sphere
-q = np.array([+2, -1]) # Charges
+R = 1 # Radius of the sphere
+q = np.array([+1]) # Charges
 xyz_sphere = [0, 0, 0] # Center position of the sphere
-xyz_charge = np.array([[0, 0, -1], [0,0, +1]]) # Position of the charge
+xyz_charge = np.array([[0, 0, 0]]) # Position of the charge
+epsilon = 80
 #Lebedev Quadrature
 ###
 # q1 = 2 q2 = -1
@@ -113,33 +139,83 @@ xyz_charge = np.array([[0, 0, -1], [0,0, +1]]) # Position of the charge
 # Similar to test 1 but now with a dipole
 # 
 # q=1 (a,0,z) q=-1 (-a,0,z)  a=0.1 z=0 .... R-0.2
+# GAUSS THEOREM q_ASC = q * (1 - eps) / eps
 
 
 
-scheme = quadpy.sphere.lebedev_003a ()    # Which precision of Lebedev
+scheme = quadpy.sphere.lebedev_065 ()    # Which precision of Lebedev
 grid_areals = scheme.integrate(lambda x: 1, xyz_sphere, R)
+normals = scheme.points
+
 points = sphere_size(scheme.points, R)
 points = sphere_position(points, xyz_sphere)
-print("Points on the sphere:")
-print(points)
-print(points.shape[0])
+#print("Points on the sphere:")
+#print(points)
+print("Number of quadrature points:", points.shape[0])
 total_areal_sphere = total_areal(grid_areals)
-print ('Total areal:', total_areal_sphere)
-print("Weights = ",grid_areals)
+#print ('Total areal:', total_areal_sphere)
+#print("Weights = ",grid_areals)
 w_i = scheme.weights * total_areal_sphere
-print(w_i.shape[0])
+#print(w_i.shape[0])
 S_matrix = S(points,w_i)
+
+
+
+
+
+"""
+
+xyz_1, xyz_2 = dipole_testing(Z)
+test = testing(Z)
+"""
+"""
+for r, xyz in enumerate(xyz_1):
+    new_xyz = np.vstack([xyz, xyz_2[r]])
+    #print(new_xyz)
+    r_i = potential(points, new_xyz, q)
+    Sigma = COSMO(S_matrix, r_i)
+    Energy = Solvation_energy(Sigma, r_i)
+    #print(f"XYZ (charge) = {new_xyz} Total charge = {np.sum(Sigma)} Energy = {Energy} ")
+"""
+"""
+for xyz in new_xyz:
+    #print(xyz)
+    r_i = potential(points, new_xyz, q)
+    Sigma = COSMO(S_matrix, r_i)
+    Energy = Solvation_energy(Sigma, r_i)
+    print(f"XYZ (charge) = {xyz} Total charge = {np.sum(Sigma)} Energy = {Energy} ")
+"""    
+
+
 r_i = potential(points, xyz_charge, q)
-print("r_i", r_i)
+#print("r_i", r_i)
 Sigma = COSMO(S_matrix, r_i)
-print(f"Sigma = {Sigma}")
+#print(f"Sigma = {Sigma}")
 print(f"Total charge = {np.sum(Sigma)}")
 
 
-Energy = Solvation_energy(q, r_i)
+Energy = Solvation_energy(Sigma, r_i)
 print(Energy)
 
-D_matrix_1 = D_matrix(points, w_i, R)
+A_matrix = A_matrix(w_i)
+
+D_matrix = D_matrix(points, w_i, R, normals)
+
+
+IEF = IEF(S_matrix, D_matrix, A_matrix, r_i, epsilon)
+
+print(f"Total charge IEF = {(np.sum(IEF))}")
+
+
+def gauss_theorem(q, eps):
+    gauss = np.sum(q) * (1- eps) / eps
+    return gauss
+
+Gauss = gauss_theorem(q,epsilon)
+print(Gauss)
+#print(IEF)
+
+
 #print(S_matrix)
-#print(D_matrix_1)
+#print(D_matrix)
 #np.testing.assert_allclose(np.sum(Sigma), - q, rtol=1e-2)
